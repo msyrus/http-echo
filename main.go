@@ -16,12 +16,21 @@ func main() {
 
 	addr := host + ":" + port
 	log.Println("Starting echo server on", addr)
-	if err := http.ListenAndServe(addr, http.HandlerFunc(EchoHandler)); err != nil {
+	if err := http.ListenAndServe(addr, Logger(http.HandlerFunc(EchoHandler))); err != nil {
 		log.Println("Server stopped")
 		log.Fatal(err)
 	}
 }
 
+// Logger is the http request logger middleware
+func Logger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.Proto, r.Host, r.Method, r.RequestURI)
+		next.ServeHTTP(w, r)
+	})
+}
+
+// EchoHandler echo request body to response
 func EchoHandler(w http.ResponseWriter, r *http.Request) {
 	for k, vs := range r.Header {
 		for _, v := range vs {
